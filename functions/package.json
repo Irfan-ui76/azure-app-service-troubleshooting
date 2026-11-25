@@ -1,0 +1,9 @@
+{
+  "name": "lab-functions",
+  "version": "1.0.0",
+  "description": "Minimal Azure Functions app (Node.js v4 model) for scenario 6",
+  "main": "src/functions/*.js",
+  "dependencies": {
+    "@azure/functions": "^4.0.0"
+  }
+}

@@ -1,0 +1,52 @@
+// Run these in Log Analytics (your workspace > Logs). Adjust the time range as needed.
+
+// ---------- App Service platform and web server logs ----------
+
+// Platform events: container start, ping failures, restarts (scenario 1)
+AppServicePlatformLogs
+| where TimeGenerated > ago(1h)
+| project TimeGenerated, Level, Message
+| order by TimeGenerated desc
+
+// Console output from the app (stdout/stderr)
+AppServiceConsoleLogs
+| where TimeGenerated > ago(1h)
+| project TimeGenerated, ResultDescription
+| order by TimeGenerated desc
+
+// Requests by status code (scenarios 1, 2)
+AppServiceHTTPLogs
+| where TimeGenerated > ago(1h)
+| summarize requests = count() by ScStatus, CsUriStem
+| order by requests desc
+
+// Slowest requests (scenario 3)
+AppServiceHTTPLogs
+| where TimeGenerated > ago(1h)
+| top 20 by TimeTaken desc
+| project TimeGenerated, CsMethod, CsUriStem, ScStatus, TimeTaken
+
+// ---------- Application Insights (workspace-based tables) ----------
+
+// Failed requests (scenario 2)
+AppRequests
+| where TimeGenerated > ago(1h) and Success == false
+| project TimeGenerated, Name, ResultCode, DurationMs
+| order by TimeGenerated desc
+
+// Exceptions with message (scenario 2)
+AppExceptions
+| where TimeGenerated > ago(1h)
+| project TimeGenerated, ExceptionType, OuterMessage
+
+// Request duration percentiles by operation (scenario 3)
+AppRequests
+| where TimeGenerated > ago(1h)
+| summarize p50 = percentile(DurationMs, 50), p95 = percentile(DurationMs, 95), count() by Name
+| order by p95 desc
+
+// Traces from a Function App (scenario 6)
+AppTraces
+| where TimeGenerated > ago(1h)
+| project TimeGenerated, SeverityLevel, Message
+| order by TimeGenerated desc
